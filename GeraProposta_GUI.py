@@ -27,7 +27,7 @@ SUMMARY_COLUMNS = [
     (10, "J"), # J column (column 10)
     (4, "D"),  # D column (column 4)
     (5, "E"),  # E column (column 5)
-    (2, "B"),  # B column (column 2) - for row+3
+    (2, "B", 5),  # B column (column 2) - for observations (5 rows below Convites)
 ]
 
 MONTHS = [
@@ -422,13 +422,17 @@ class BordereauGUI:
         # Calculate summary row (2 rows below Convites)
         summary_row = convites_row + 2
         
-        # Extract summary items from columns: F, H, J, D, E, and B (3 rows below Convites)
-        for col_num, col_letter in SUMMARY_COLUMNS:
-            if col_letter == "B":
-                # B column is from 3 rows below Convites (for observations)
-                value = sheet.cell(summary_row + 1, col_num).internal_value
+        # Extract summary items from columns: F, H, J, D, E, and B (at appropriate rows)
+        for summary_col_info in SUMMARY_COLUMNS:
+            col_num = summary_col_info[0]
+            col_letter = summary_col_info[1]
+            
+            if len(summary_col_info) > 2:
+                # Custom offset for this column (e.g., observations)
+                row_offset = summary_col_info[2]
+                value = sheet.cell(convites_row + row_offset, col_num).internal_value
             else:
-                # Other columns are from 2 rows below Convites
+                # Default: use summary_row (2 rows below Convites)
                 value = sheet.cell(summary_row, col_num).internal_value
             
             output_ws.cell(output_row, col_index, value)
