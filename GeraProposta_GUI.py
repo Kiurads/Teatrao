@@ -17,14 +17,17 @@ from openpyxl.utils import column_index_from_string
 SOURCE_SHEET_NAME = "Folha1"
 OUTPUT_SHEET_NAME = "Bordereaux_Geral"
 
-ITEMS_TO_EXTRACT = [
-    "F1", "F5", None, None, "F7", "F3", "F15", "F13", "F9", "F11", "F17", "D24", "E24",
-    "D25", "E25", "D26", "E26", "D27", "E27", "D28", "E28", "D29", "E29",
-    "D30", "E30", "D31", "E31", "D32", "E32", "D33", "E33", "D34", "E34",
-    "D35", "E35", "D36", "E36", "D37", "E37", "D38", "E38", "D39", "E39",
-    "D40", "E40", "D41", "E41", "D42", "E42", "D43", "E43", "D44", "E44",
-    "D45", "E45", "D46", "E46", "D47", "E47", "D48", "E48", "D49", "F51",
-    "H51", "J51", "D51", "E51", "B54"
+ITEMS_TO_EXTRACT_STATIC = [
+    "F1", "F5", None, None, "F7", "F3", "F15", "F13", "F9", "F11", "F17"
+]
+
+SUMMARY_COLUMNS = [
+    (6, "F"),  # F column (column 6)
+    (8, "H"),  # H column (column 8)
+    (10, "J"), # J column (column 10)
+    (4, "D"),  # D column (column 4)
+    (5, "E"),  # E column (column 5)
+    (2, "B"),  # B column (column 2) - for row+3
 ]
 
 MONTHS = [
@@ -155,7 +158,6 @@ class BordereauGUI:
         
         self.log_text = scrolledtext.ScrolledText(
             log_frame, 
-            height=15, 
             wrap=tk.WORD,
             font=("Consolas", 9)
         )
@@ -348,8 +350,11 @@ class BordereauGUI:
         
         sheet = workbook[SOURCE_SHEET_NAME]
         
-        for col_index, item in enumerate(ITEMS_TO_EXTRACT, start=1):
+        # Extract static items (header info)
+        col_index = 1
+        for item in ITEMS_TO_EXTRACT_STATIC:
             if item is None:
+                col_index += 1
                 continue
             
             value = extract_cell_value(sheet, item)
@@ -360,6 +365,45 @@ class BordereauGUI:
                 output_ws.cell(output_row, 4, WEEKDAYS[value.weekday()])
             else:
                 output_ws.cell(output_row, col_index, value)
+            col_index += 1
+        
+        # Find the row where column B contains "Convites"
+        convites_row = None
+        for row_num in range(24, 100):
+            cell_value = sheet.cell(row_num, 2).value  # Column B is column 2
+            if cell_value == "Convites":
+                convites_row = row_num
+                break
+        
+        if convites_row is None:
+            self.log(f"  Aviso: Não foi encontrada a linha 'Convites'")
+            workbook.close()
+            raise ValueError("Linha 'Convites' não encontrada")
+        
+        # Extract D and E columns from row 24 to the row before "Convites"
+        for row_num in range(24, convites_row):
+            d_value = sheet.cell(row_num, 4).internal_value  # Column D
+            e_value = sheet.cell(row_num, 5).internal_value  # Column E
+            
+            output_ws.cell(output_row, col_index, d_value)
+            col_index += 1
+            output_ws.cell(output_row, col_index, e_value)
+            col_index += 1
+        
+        # Calculate summary row (2 rows below Convites)
+        summary_row = convites_row + 2
+        
+        # Extract summary items from columns: F, H, J, D, E, and B (3 rows below Convites)
+        for col_num, col_letter in SUMMARY_COLUMNS:
+            if col_letter == "B":
+                # B column is from 3 rows below Convites (for observations)
+                value = sheet.cell(summary_row + 1, col_num).internal_value
+            else:
+                # Other columns are from 2 rows below Convites
+                value = sheet.cell(summary_row, col_num).internal_value
+            
+            output_ws.cell(output_row, col_index, value)
+            col_index += 1
         
         workbook.close()
         self.log(f"  ✓ Processado com sucesso")
