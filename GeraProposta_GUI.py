@@ -40,24 +40,13 @@ WEEKDAYS = [
     "Quinta-feira", "Sexta-feira", "Sábado", "Domingo"
 ]
 
-HEADER_COLUMNS = [
+STATIC_HEADER_COLUMNS = [
     "Nº Registo", "Data", "Mês", "Dia da Semana", "Hora", "Nome do Espetáculo",
-    "Local", "Atividade", "Classificação Etária", "Evento", "Lotação Máxima",
-    "Normal", "Valor", "Entidades Protocoladas", "Valor2", "Estudantes",
-    "Valor3", "Seniores > 65", "Valor4", "Profissionais das Artes Espetáculo",
-    "Valor5", "Pais Classes do Teatrão", "Valor6", "Desempregados", "Valor7",
-    "Alunos São Teotónio", "Valor8", "Alunos Classe de Teatro", "Valor9",
-    "Colaboradores IPC", "Valor10", "Comunidades Vale das Flores", "Valor11",
-    "Grupos a partir 10 Pessoas", "Valor12", "Pessoas Portadoras de Deficiência e/ou S/surdas",
-    "Valor13", "Colaboradores ISEC e ESEC; Alunos IPC", "Valor14", "Projeto Pedagógico",
-    "Valor15", "MÚSICA", "Valor16", "MÚSICA_Conservatória", "Valor17",
-    "Res. Artística 9 Normal", "Valor18", "Res. Artística 9 Estudantes",
-    "Valor19", "Res. Artística 9 Classes de Teatro", "Valor20",
-    "Outras Situações Pré-Venda", "Valor24", "Outras Situações Venda",
-    "Valor25", "Escolas", "Valor21", "Escolas com transporte", "Valor22",
-    "Escolas com Protocolo", "Valor23", "Convites", "Total Bilheteira",
-    "Total Postos TL", "Total Internet", "Total de Bilhetes", "Valor Total",
-    "Observação"
+    "Local", "Atividade", "Classificação Etária", "Evento", "Lotação Máxima"
+]
+
+SUMMARY_HEADER_COLUMNS = [
+    "Total Bilheteira", "Total Postos TL", "Total Internet", "Total de Bilhetes", "Valor Total", "Observação"
 ]
 
 
@@ -82,7 +71,7 @@ class BordereauGUI:
     def __init__(self, root):
         self.root = root
         self.root.title("Gerador de Proposta Bordereau")
-        self.root.geometry("800x600")
+        self.root.geometry("800x500")
         self.root.resizable(True, True)
         
         self.input_folder = tk.StringVar(value=os.getcwd())
@@ -94,29 +83,29 @@ class BordereauGUI:
     def create_widgets(self):
         """Create all GUI widgets."""
         # Title
-        title_frame = ttk.Frame(self.root, padding="10")
+        title_frame = ttk.Frame(self.root, padding="5")
         title_frame.pack(fill=tk.X)
         
         title_label = ttk.Label(
             title_frame, 
             text="Gerador de Proposta Bordereau", 
-            font=("Segoe UI", 16, "bold")
+            font=("Segoe UI", 14, "bold")
         )
         title_label.pack()
         
         subtitle = ttk.Label(
             title_frame,
             text="Extrair dados de múltiplos ficheiros Excel para um relatório consolidado",
-            font=("Segoe UI", 9)
+            font=("Segoe UI", 8)
         )
         subtitle.pack()
         
         # Separator
-        ttk.Separator(self.root, orient=tk.HORIZONTAL).pack(fill=tk.X, pady=10)
+        ttk.Separator(self.root, orient=tk.HORIZONTAL).pack(fill=tk.X, pady=3)
         
         # Input folder selection
-        folder_frame = ttk.LabelFrame(self.root, text="Pasta de Origem", padding="10")
-        folder_frame.pack(fill=tk.X, padx=10, pady=5)
+        folder_frame = ttk.LabelFrame(self.root, text="Pasta de Origem", padding="5")
+        folder_frame.pack(fill=tk.X, padx=10, pady=2)
         
         folder_entry_frame = ttk.Frame(folder_frame)
         folder_entry_frame.pack(fill=tk.X)
@@ -134,8 +123,8 @@ class BordereauGUI:
         ).pack(side=tk.RIGHT)
         
         # Output file name
-        output_frame = ttk.LabelFrame(self.root, text="Ficheiro de Saída", padding="10")
-        output_frame.pack(fill=tk.X, padx=10, pady=5)
+        output_frame = ttk.LabelFrame(self.root, text="Ficheiro de Saída", padding="5")
+        output_frame.pack(fill=tk.X, padx=10, pady=2)
         
         ttk.Entry(
             output_frame, 
@@ -143,8 +132,8 @@ class BordereauGUI:
         ).pack(fill=tk.X)
         
         # Progress bar
-        progress_frame = ttk.Frame(self.root, padding="10")
-        progress_frame.pack(fill=tk.X, padx=10)
+        progress_frame = ttk.Frame(self.root, padding="5")
+        progress_frame.pack(fill=tk.X, padx=10, pady=2)
         
         self.progress = ttk.Progressbar(
             progress_frame, 
@@ -152,20 +141,9 @@ class BordereauGUI:
         )
         self.progress.pack(fill=tk.X)
         
-        # Log output
-        log_frame = ttk.LabelFrame(self.root, text="Log de Processamento", padding="10")
-        log_frame.pack(fill=tk.BOTH, expand=True, padx=10, pady=5)
-        
-        self.log_text = scrolledtext.ScrolledText(
-            log_frame, 
-            wrap=tk.WORD,
-            font=("Consolas", 9)
-        )
-        self.log_text.pack(fill=tk.BOTH, expand=True)
-        
         # Buttons
-        button_frame = ttk.Frame(self.root, padding="10")
-        button_frame.pack(fill=tk.X)
+        button_frame = ttk.Frame(self.root, padding="5")
+        button_frame.pack(fill=tk.X, padx=10, pady=2)
         
         self.process_btn = ttk.Button(
             button_frame, 
@@ -173,19 +151,24 @@ class BordereauGUI:
             command=self.start_processing,
             style="Accent.TButton"
         )
-        self.process_btn.pack(side=tk.LEFT, padx=5)
+        self.process_btn.pack(side=tk.LEFT, padx=3)
         
         ttk.Button(
             button_frame, 
             text="Limpar Log", 
             command=self.clear_log
-        ).pack(side=tk.LEFT, padx=5)
+        ).pack(side=tk.LEFT, padx=3)
         
-        ttk.Button(
-            button_frame, 
-            text="Sair", 
-            command=self.root.quit
-        ).pack(side=tk.RIGHT, padx=5)
+        # Log output
+        log_frame = ttk.LabelFrame(self.root, text="Log de Processamento", padding="5")
+        log_frame.pack(fill=tk.BOTH, expand=True, padx=10, pady=3)
+        
+        self.log_text = scrolledtext.ScrolledText(
+            log_frame, 
+            wrap=tk.WORD,
+            font=("Consolas", 8)
+        )
+        self.log_text.pack(fill=tk.BOTH, expand=True)
         
         # Status bar
         self.status_var = tk.StringVar(value="Pronto")
@@ -276,7 +259,6 @@ class BordereauGUI:
             output_wb = openpyxl.Workbook()
             output_ws = output_wb.active
             output_ws.title = OUTPUT_SHEET_NAME
-            output_ws.append(HEADER_COLUMNS)
             
             # Find Excel files
             excel_files = [
@@ -287,6 +269,15 @@ class BordereauGUI:
             if not excel_files:
                 self.log("\nNenhum ficheiro Excel encontrado para processar.")
                 messagebox.showinfo("Informação", "Nenhum ficheiro Excel encontrado na pasta selecionada.")
+                return
+            
+            # Generate headers from the first file
+            try:
+                header_columns = self.generate_headers(excel_files[0])
+                output_ws.append(header_columns)
+            except Exception as e:
+                self.log(f"ERRO ao gerar headers: {e}")
+                messagebox.showerror("Erro", f"Não foi possível gerar os headers:\n\n{e}")
                 return
             
             self.log(f"\nEncontrados {len(excel_files)} ficheiro(s) para processar.\n")
@@ -338,6 +329,44 @@ class BordereauGUI:
             self.processing = False
             self.process_btn.config(state="normal")
             self.progress.stop()
+    
+    def generate_headers(self, file_path: Path) -> list:
+        """Generate header columns dynamically from the first Excel file."""
+        workbook = openpyxl.load_workbook(file_path, read_only=True, data_only=True)
+        
+        if SOURCE_SHEET_NAME not in workbook.sheetnames:
+            raise ValueError(f"Folha '{SOURCE_SHEET_NAME}' não encontrada")
+        
+        sheet = workbook[SOURCE_SHEET_NAME]
+        
+        # Start with static headers
+        headers = STATIC_HEADER_COLUMNS.copy()
+        
+        # Find the row where column B contains "Convites"
+        convites_row = None
+        for row_num in range(24, 100):
+            cell_value = sheet.cell(row_num, 2).value  # Column B is column 2
+            if cell_value == "Convites":
+                convites_row = row_num
+                break
+        
+        if convites_row is None:
+            raise ValueError("Linha 'Convites' não encontrada")
+        
+        # Extract category names and prices from rows 24 to convites_row-1
+        for row_num in range(24, convites_row):
+            category_name = sheet.cell(row_num, 2).value  # Column B
+            price_value = sheet.cell(row_num, 3).value    # Column C
+            
+            if category_name:
+                headers.append(category_name)
+                headers.append("Valor " + category_name)
+        
+        # Add summary headers
+        headers.extend(SUMMARY_HEADER_COLUMNS)
+        
+        workbook.close()
+        return headers
     
     def process_excel_file(self, file_path: Path, output_ws, output_row: int):
         """Process a single Excel file and extract data."""
