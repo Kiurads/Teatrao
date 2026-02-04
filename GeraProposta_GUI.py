@@ -353,14 +353,14 @@ class BordereauGUI:
         if convites_row is None:
             raise ValueError("Linha 'Convites' não encontrada")
         
-        # Extract category names and prices from rows 24 to convites_row-1
-        for row_num in range(24, convites_row):
+        # Extract category names and prices from rows 24 to convites_row (inclusive)
+        for row_num in range(24, convites_row + 1):
             category_name = sheet.cell(row_num, 2).value  # Column B
             price_value = sheet.cell(row_num, 3).value    # Column C
             
             if category_name:
                 headers.append(category_name)
-                headers.append("Valor " + category_name)
+                headers.append("Valor " + str(category_name))
         
         # Add summary headers
         headers.extend(SUMMARY_HEADER_COLUMNS)
@@ -409,8 +409,8 @@ class BordereauGUI:
             workbook.close()
             raise ValueError("Linha 'Convites' não encontrada")
         
-        # Extract D and E columns from row 24 to the row before "Convites"
-        for row_num in range(24, convites_row):
+        # Extract D and E columns from row 24 to the "Convites" row (inclusive)
+        for row_num in range(24, convites_row + 1):
             d_value = sheet.cell(row_num, 4).internal_value  # Column D
             e_value = sheet.cell(row_num, 5).internal_value  # Column E
             
